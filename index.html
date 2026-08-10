@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>급식실 대기열 시뮬레이션 · 김포호수고</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-title">
+    <span class="logo-dot"></span>
+    <div>
+      <h1>급식실 대기열 시뮬레이션</h1>
+      <p>리틀의 법칙 기반 스마트 분산 배칭 — 심화학습 프로젝트</p>
+    </div>
+  </div>
+  <label class="dual-toggle">
+    <input type="checkbox" id="dualModeToggle">
+    <span>듀얼 비교 모드 (전략 두 개 동시 실행)</span>
+  </label>
+</header>
+
+<main id="panels"></main>
+
+<footer class="foot-note">
+  <p>배식 파이프라인(밥→반찬1→반찬2→반찬3→국→디저트) · 두 줄 배분(전략별) · 친구 무리 배치도착 · 자율배식 병목 ·
+  감독교사 시야·새치기 적발/페널티 를 반영한 1인칭 시뮬레이션입니다. 실제 급식실 상황과 100% 일치하지 않을 수 있습니다.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
