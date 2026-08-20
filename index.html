@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>급식실 대기열 시뮬레이션 · 김포호수고</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-title">
+    <span class="logo-dot"></span>
+    <div>
+      <h1>급식실 대기열 시뮬레이션</h1>
+      <p>리틀의 법칙 기반 스마트 분산 배칭 — 심화학습 프로젝트</p>
+    </div>
+  </div>
+  <label class="dual-toggle">
+    <input type="checkbox" id="dualModeToggle">
+    <span>듀얼 비교 모드 (전략 두 개 동시 실행)</span>
+  </label>
+</header>
+
+<main id="panels"></main>
+
+<footer class="foot-note">
+  <p>2층 식당(방풍실·수석교사실 옆 공간~계단실) U자형 동선을 기준으로 전략별 대기열 형태를 다르게 시각화합니다.
+  아이패드 프로 라이다 스캔(Polycam) 및 현장 실측 사진을 바탕으로 반별 좌우 배정(짝수반 左·홀수반 右)과
+  입구·출구 분리 구조를 실제와 맞게 반영했습니다. 그 외 세부 치수는 실제 급식실 상황과 100% 일치하지 않을 수 있습니다.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
