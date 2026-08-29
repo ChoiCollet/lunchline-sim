@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>급식실 대기열 시뮬레이션 · 김포호수고</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-title">
+    <span class="logo-dot"></span>
+    <div>
+      <h1>급식실 대기열 시뮬레이션</h1>
+      <p>리틀의 법칙 기반 스마트 분산 배칭 — 심화학습 프로젝트</p>
+    </div>
+  </div>
+  <label class="dual-toggle">
+    <input type="checkbox" id="dualModeToggle">
+    <span>듀얼 비교 모드 (전략 두 개 동시 실행)</span>
+  </label>
+</header>
+
+<main id="panels"></main>
+
+<footer class="foot-note">
+  <p>Polycam LiDAR 실측 스캔(2026-08-21 전체 층 + 2026-08-18 전실·세면대·음수대 구역) 텍스처에서 바닥 페인트 색을
+  직접 추출해 초록 줄서기 라인(문 앞 약 5.7m)과 빨간 정지선(문턱) 위치, 계단실→메인 복도→문→세면대→배식대로 이어지는
+  실제 동선과 반별 좌우 배정(짝수반 左·홀수반 右)을 반영했습니다. 문 안쪽 배식대 자체의 내부 배치는 스캔 범위 밖이라
+  스키매틱하게 표현했습니다.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
