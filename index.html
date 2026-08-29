@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>급식실 대기열 시뮬레이션 · 김포호수고</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-title">
+    <span class="logo-dot"></span>
+    <div>
+      <h1>급식실 대기열 시뮬레이션</h1>
+      <p>리틀의 법칙 기반 스마트 분산 배칭 — 심화학습 프로젝트</p>
+    </div>
+  </div>
+  <label class="dual-toggle">
+    <input type="checkbox" id="dualModeToggle">
+    <span>듀얼 비교 모드 (전략 두 개 동시 실행)</span>
+  </label>
+</header>
+
+<main id="panels"></main>
+
+<footer class="foot-note">
+  <p>사용자가 Archisketch로 직접 제작한 2층 급식실 앞 통로·세면대/음수대 통로·급식실 평면도(실측 mm)와
+  화살표로 표시한 실제 동선 주석, 현장 촬영 사진(입구·출구 문, GOOTZ 음수대, 세면대, 반별 안내판, 바닥 표식선)을
+  근거로 계단실→1-8복도→급식실 오른·왼복도 바닥(문 앞은 들르지 않음)→학생 유도 라인에서 "ㄷ"자로 대기(초록선,
+  실측 약 11.8m)→같은 복도 상단을 되돌아 나와 급식실 입출구 왼쪽 벽의 빨간 입장 대기선에서 정지→
+  입구(짝수반 左·홀수반 右)를 지나며 두 줄로 분기→세면대를 지나 배식대로 이어지는 실제 동선을 반영했습니다.
+  배식대는 실제 급식실이 넓어지는 방향으로 계속 증설되며, 문 안쪽 배식대 자체의 세부 배치는 평면도·사진
+  모두 촬영 범위 밖이라 스키매틱하게 표현했습니다.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
