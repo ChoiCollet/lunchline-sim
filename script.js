@@ -8,8 +8,8 @@
      (문 앞은 들르지 않음, 실측 약 14.5m) → 학생 유도 라인(92㎡) 진입, 여기서부터 초록 유도선을
      "ㄷ"자로 이동: 바닥변(서쪽으로, 실측 11.8m) → 방 안쪽에서 꺾임 → 다시 상단변을 따라
      동쪽으로(같은 복도를 되돌아 나오는 구간까지 포함) → 급식실 입출구 왼쪽 벽의
-     빨간색 "입장 대기선"에서 정지 → 입구(짝수반 左·홀수반 右, 바닥 노란 중앙선+빨강/파랑 표시)를
-     지나면서 한 줄에서 두 줄로 분기 → 방풍실 진입 → 세면대 통로를 지나 각 배식대로
+     빨간색 "입장 대기선"에서 정지 → 대기선을 지나 조금 더 내려온 뒤 ㄷ자로 한 줄에서
+     두 줄로 분기(분기 아랫부분에 세면대 배치) → 각 배식대로
      (배식대는 실제 급식실이 세로로 긴 구조라 위쪽 방향으로 계속 증설됨. 퇴장은 별도
      문·음수대(GOOTZ) 통로를 이용하며, 화면에는 "퇴장 완료" 수치로만 집계함)
    ============================================================ */
@@ -47,9 +47,8 @@ function gaussian(mean, std) {
 function zoneLabel(t) {
   if (t < GREEN_START_T) return "계단실~복도(급식실 오른·왼복도 바닥, 문 앞은 안 거침)";
   if (t < GREEN_END_T) return "학생 유도 라인(초록선, ㄷ자 대기 구간)";
-  if (t < RED_T) return "복도 되돌아가기(입장 순서를 기다리며 전진)";
-  if (t < FORK_T) return "급식실 입출구 앞 빨간 입장 대기선";
-  return "입구 통과, 세면대 지나 배식대로";
+  if (t < FORK_T) return "입장 대기선 통과 후 ㄷ자 분기 전까지 이동";
+  return "세면대 지나 배식대로(ㄷ자 분기 구간)";
 }
 
 // ---------- 경로 좌표(사용자가 직접 그린 구상도 기준 — 직각 경로) ----------
@@ -59,13 +58,15 @@ function zoneLabel(t) {
 //   갈라져 오른쪽 배식대 구역으로(모두 직각 이동, 곡선 없음)
 // 감독 교사의 순찰 경로는 학생 동선과 별개로, ㄷ자 사이 빈 공간에서 위아래로만 왕복함
 // (실제 GLB/평면도 실측 수치보다 사용자가 재구성한 이 동선 형태를 우선함)
+const DESCEND_LEN = 80; // 입장 대기선을 지난 뒤, ㄷ자 분기가 시작되기 전까지 조금 더 내려오는 구간 길이
 const PATH_POINTS = [
   { x: 560, y: 700, m: "계단실(대기열 시작)" },
   { x: 60,  y: 700, m: "왼쪽으로 이동" },
   { x: 60,  y: 380, m: "학생 유도 라인 진입 — 여기서부터 초록 유도선" },
   { x: 60,  y: 60,  m: "왼쪽 컬럼 위 끝 — ㄷ자 코너" },
   { x: 310, y: 60,  m: "위쪽 변 끝 — ㄷ자 반대쪽 코너" },
-  { x: 310, y: 420, m: "오른쪽 컬럼 아래 — 빨간 입장 대기선" }
+  { x: 310, y: 420, m: "오른쪽 컬럼 아래 — 빨간 입장 대기선" },
+  { x: 310, y: 420 + DESCEND_LEN, m: "입장 대기선을 지나 조금 더 내려온 지점 — 여기서부터 ㄷ자로 배식대 분기" }
 ];
 const GREEN_START_IDX = 2, GREEN_END_IDX = 5, RED_IDX = 5;
 
@@ -104,15 +105,16 @@ function corridorPoint(t) { return pointAtT(MAIN_PATH, t); }
 
 const GREEN_START_T = tAtIndex(MAIN_PATH, GREEN_START_IDX); // 학생 유도 라인(초록선) 시작
 const GREEN_END_T = tAtIndex(MAIN_PATH, GREEN_END_IDX);     // 초록선 구간 끝 = 빨간 입장 대기선
-const RED_T = GREEN_END_T;                                  // 빨간 입장 대기선(경로의 마지막 지점)
+const RED_T = GREEN_END_T;                                  // 빨간 입장 대기선(ㄷ자 분기 전, 경로 중간 지점)
 const RED_MARK = corridorPoint(RED_T);
 
-// 빨간 입장 대기선에 도달하면 더 내려가지 않고 그 자리에서 곧바로 "오른쪽"으로 꺾어 두 줄로 갈라짐
-// (사용자 구상도의 주황 화살표: 빨간선 → 오른쪽으로 살짝 위/아래로 갈라지며 진입)
-const FORK_BASE = RED_MARK;
+// 빨간 입장 대기선에서 잠시 멈춘 뒤, 곧바로 꺾이지 않고 조금 더 내려온 지점(경로의 끝, t=1)에서
+// 비로소 ㄷ자로 두 줄로 갈라져 배식대로 들어감 (사용자 희망 구상도 반영: 대기선 → 소폭 하강 → ㄷ자 분기)
+const FORK_BASE = corridorPoint(1);
 const COUNTER_X = 440;           // 배식대 구역이 시작되는 x좌표(모든 배식대 공통, 한 줄로 위로만 증설)
-const FORK_L_Y = 380;            // 위쪽으로 살짝 갈라져 들어가는 줄(짝수반)
-const FORK_R_Y = 460;            // 아래쪽으로 살짝 갈라져 들어가는 줄(홀수반) — 세면대와 같은 높이대
+const FORK_ARM = 60;             // ㄷ자 위/아래 팔의 길이
+const FORK_L_Y = FORK_BASE.y - FORK_ARM; // ㄷ자 윗팔로 갈라져 들어가는 줄(짝수반)
+const FORK_R_Y = FORK_BASE.y + FORK_ARM; // ㄷ자 아랫팔로 갈라져 들어가는 줄(홀수반) — 이 아랫팔에 세면대 배치
 // 직각 전용 포크 경로: FORK_BASE에서 세로로 살짝 이동한 뒤 수평으로 꺾여 배식대 구역(COUNTER_X)으로.
 // u는 0(빨간선 지점)~1(배식대 진입 지점) — 정적 안내선을 그릴 때나 대기열 끝부분을 그릴 때나 동일하게 사용.
 function forkPoint(u, side) {
@@ -129,23 +131,27 @@ function forkPoint(u, side) {
   const localU = horizLen > 0 ? (d - vertLen) / horizLen : 0;
   return { x: FORK_BASE.x + horizLen * clamp(localU, 0, 1), y: targetY };
 }
-// 대기열의 t는 최대 0.95까지만 커지므로(posOfIndex), FORK_T는 그보다 살짝 작은 값으로 잡아
-// 맨 앞쪽 학생 몇 명만 "빨간선을 지나 갈라지는 중"으로 표시되도록 함
-const FORK_T = 0.9;
+// 학생 대기열은 t=1(=FORK_BASE, 대기선을 지나 조금 내려온 지점)까지는 corridorPoint를 그대로
+// 따라가다가, 그 지점을 넘어서면서 끊김 없이 ㄷ자 fork 구간으로 이어짐(t=1에서 corridorPoint와
+// forkPoint(u=0)가 정확히 같은 좌표라 점프가 생기지 않음 — 맨 앞 학생이 초록선 끝까지 내려오지
+// 않던 문제와, fork 구간에서만 간격이 벌어지던 문제를 함께 해결).
+// fork 구간의 t 폭은 실제 물리적 분기 길이(세로+가로)를 본선 길이 비율로 환산해서 정하므로,
+// 대기열 안에서의 간격과 배식대로 들어가는 구간의 간격이 동일하게 유지됨.
+const FORK_T = 1;
+const FORK_PHYS_LEN = FORK_ARM + (COUNTER_X - FORK_BASE.x);
+const QUEUE_T_MAX = FORK_T + FORK_PHYS_LEN / MAIN_PATH.total;
 function queuePoint(t, sideHint) {
-  if (t < FORK_T) return corridorPoint(t);
-  const u = clamp((t - FORK_T) / (0.95 - FORK_T), 0, 1);
+  if (t <= FORK_T) return corridorPoint(t);
+  const u = clamp((t - FORK_T) / (QUEUE_T_MAX - FORK_T), 0, 1);
   return forkPoint(u, sideHint);
 }
-// 문 아이콘(짝수반 左·홀수반 右) — 빨간 대기선 바로 오른쪽, 꺾이는 지점
-const DOOR_ICON_POS = { x: FORK_BASE.x + 34, y: FORK_BASE.y };
-// 세면대: 오른쪽으로 꺾여 들어가는 두 줄(주황 화살표) 아래, 가로로 나란히 배치
-const SINK_L = { x: FORK_BASE.x + 40, y: FORK_BASE.y + 110 };
-const SINK_R = { x: FORK_BASE.x + 90, y: FORK_BASE.y + 110 };
+// 세면대: ㄷ자의 "아랫팔"(FORK_R_Y) 위, 대기선에서 조금 내려온 지점부터 배식대 구역 사이에 배치
+const SINK_L = { x: FORK_BASE.x + 40, y: FORK_R_Y };
+const SINK_R = { x: FORK_BASE.x + 90, y: FORK_R_Y };
 
 // 배식대: L/R로 좌우 분리하지 않고 한 컬럼(같은 x=COUNTER_X)에서 위로만 계속 증설됨(2x2 금지)
 const COUNTER_BASE_Y = 500;   // 맨 아래(첫 번째) 배식대 줄의 y좌표
-const COUNTER_ROW_SPACING = 76; // 위로 한 줄씩 늘어날 때 간격
+const COUNTER_ROW_SPACING = 84; // 위로 한 줄씩 늘어날 때 간격(배식대가 커진 만큼 소폭 확대)
 const COUNTER_TOP_LABEL_Y = COUNTER_BASE_Y - 3 * COUNTER_ROW_SPACING - 22; // 4번째 줄 위 여백에 안내문구
 
 // ---------- 감독 교사 순찰 경로(학생 동선과 별개, ㄷ자 사이 빈 공간에서 위아래로만 왕복) ----------
@@ -450,7 +456,8 @@ class LunchLineSim {
   posOfIndex(idx) {
     // 사람 한 명당 "고정 간격"만큼 뒤로 밀림 (대기열 전체 길이에 비례시키지 않음)
     // -> 줄이 짧을 때 억지로 넓게 퍼지거나, 길이 변화로 새치기 표시가 어긋나는 문제 방지
-    return clamp(0.95 - idx * QUEUE_SPACING, 0, 0.95);
+    // 맨 앞(idx=0)은 QUEUE_T_MAX(=배식대 진입 직전)까지 채워지므로, 초록선 끝까지 학생이 실제로 내려온다.
+    return clamp(QUEUE_T_MAX - idx * QUEUE_SPACING, 0, QUEUE_T_MAX);
   }
 
   addCheatFlash(pos, caught) {
@@ -712,27 +719,6 @@ class LunchLineSim {
     ctx.fillText("세면대", p.x - 12, p.y + 16);
   }
 
-  // 현장 사진 반영: 입구 문 바로 앞 바닥에 노란 중앙선이 있고, 그 좌우로
-  // 짝수반(左, 빨강 표식)·홀수반(右, 파랑 표식) 두 레인이 표시되어 있음(안내판과 함께 확인됨)
-  drawEntranceDoor(ctx, p) {
-    ctx.save();
-    // 문짝 두 짝
-    ctx.strokeStyle = "#9aa7bd"; ctx.lineWidth = 1.4;
-    ctx.strokeRect(p.x - 13, p.y - 11, 11, 22);
-    ctx.strokeRect(p.x + 2, p.y - 11, 11, 22);
-    // 바닥 노란 중앙선(문틀 seam)
-    ctx.strokeStyle = "#e8c332"; ctx.lineWidth = 3; ctx.lineCap = "round";
-    ctx.beginPath(); ctx.moveTo(p.x, p.y - 11); ctx.lineTo(p.x, p.y + 15); ctx.stroke();
-    // 왼쪽(짝수반, 빨강 표식) / 오른쪽(홀수반, 파랑 표식) 바닥 표식
-    ctx.beginPath(); ctx.fillStyle = "#d64545"; ctx.arc(p.x - 6, p.y + 15, 2.6, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.fillStyle = "#3f6fc4"; ctx.arc(p.x + 6, p.y + 15, 2.6, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#8a94a6"; ctx.font = "8px sans-serif"; ctx.textAlign = "center";
-    ctx.fillText("짝수반 左↑", p.x - 20, p.y + 26);
-    ctx.fillText("홀수반 右↑", p.x + 20, p.y + 26);
-    ctx.textAlign = "left";
-    ctx.restore();
-  }
-
   drawCorridorScene(ctx, colors) {
     const cfg = this.cfg;
     const strokeSeg = (t0, t1, style, width, steps = 20) => {
@@ -751,7 +737,7 @@ class LunchLineSim {
     // 2) 학생 유도 라인(초록선) — ㄷ자로 위로 → 가로 → 아래로, 빨간 입장 대기선까지
     strokeSeg(GREEN_START_T, GREEN_END_T, "#4caf7d", 15);
 
-    // 빨간 입장 대기선 — 여기서 잠시 멈춤 (더 내려가지 않고, 여기서 곧바로 오른쪽으로 꺾임)
+    // 빨간 입장 대기선 — 여기서 잠시 멈춤
     ctx.save();
     ctx.strokeStyle = "#d64545"; ctx.lineWidth = 5; ctx.lineCap = "square";
     ctx.beginPath();
@@ -760,7 +746,9 @@ class LunchLineSim {
     ctx.stroke();
     ctx.restore();
 
-    // 빨간 대기선에서 바로 오른쪽으로 꺾여 두 줄로 갈라져 배식대 구역(COUNTER_X)으로(회색)
+    // 3) 대기선을 지나 곧바로 꺾이지 않고 조금 더 내려온 뒤(회색) → 그 지점(FORK_BASE)에서
+    //    비로소 ㄷ자로 두 줄로 갈라져 배식대 구역(COUNTER_X)으로
+    strokeSeg(GREEN_END_T, 1, "#c9d2de", 15);
     ctx.strokeStyle = "#c9d2de"; ctx.lineWidth = 11; ctx.lineCap = "square";
     ["L", "R"].forEach(side => {
       ctx.beginPath();
@@ -771,9 +759,6 @@ class LunchLineSim {
       }
       ctx.stroke();
     });
-
-    // 문 아이콘(짝수반 左·홀수반 右) — 빨간 대기선과 세면대 사이
-    this.drawEntranceDoor(ctx, DOOR_ICON_POS);
 
     // 구간 라벨 — 실측 수치 표기 없이 구간명만 간단히 표시
     ctx.fillStyle = "#8a94a6"; ctx.font = "10px sans-serif"; ctx.textAlign = "right";
@@ -795,7 +780,7 @@ class LunchLineSim {
     // 학생 점: FORK_T 이전은 단일 줄, 이후는 좌/우 포크 경로로 갈라져서 표시
     // (배정된 배식대 쪽(L/R)이 있으면 그쪽 포크로, 아직 없으면 인덱스 홀짝으로 임시 표시)
     const arr = this.corridor;
-    const maxVisible = Math.floor(0.93 / QUEUE_SPACING);
+    const maxVisible = Math.floor((QUEUE_T_MAX - 0.02) / QUEUE_SPACING);
     const visible = arr.slice(0, maxVisible);
     visible.forEach((s, i) => {
       const t = this.posOfIndex(i);
@@ -937,11 +922,11 @@ class LunchLineSim {
   }
 
   drawCounters(ctx, colors, corridorMode) {
-    const counterH = 34;
     if (corridorMode) {
       // 세로형 레이아웃: L/R로 좌우 분리하지 않고, 하나의 컬럼(같은 x)에서 배식대가
       // 계속 "위로만" 증설되는 형태 (실제 급식실이 세로로 긴 구조이기 때문)
-      const stationW = 20;
+      // 기존(20x34)보다 비율(20:34)을 유지한 채 소폭 확대(24x41)
+      const stationW = 24, counterH = 41;
       this.counters.forEach((c, i) => {
         const startX = COUNTER_X;
         const y = COUNTER_BASE_Y - i * COUNTER_ROW_SPACING;
@@ -963,6 +948,7 @@ class LunchLineSim {
       return;
     }
     // B 전략(반별 두 줄)용 기존 가로 배치
+    const counterH = 34;
     const counterTop = 150, stationW = 30, baseX = 430, rowGap = 84;
     let li = 0, ri = 0;
     this.counters.forEach((c) => {
@@ -988,8 +974,11 @@ class LunchLineSim {
   }
 
   drawAutonomous(ctx, corridorMode) {
-    const autoX = corridorMode ? 20 : 430;
-    const autoY = corridorMode ? 440 : 300;
+    // corridorMode: 배식대1(맨 아래 줄, y=COUNTER_BASE_Y)의 스테이션 이름 라벨 바로 아래에 배치
+    // (수용 인원 슬라이더를 크게 잡아도 캔버스 오른쪽 밖으로 넘치지 않도록 시작 x를 보정)
+    const maxAutoX = this.canvas.width - this.autonomous.cap * 28 - 10;
+    const autoX = corridorMode ? Math.min(COUNTER_X, maxAutoX) : 430;
+    const autoY = corridorMode ? COUNTER_BASE_Y + 72 : 300;
     ctx.fillStyle = "#334"; ctx.font = "11px sans-serif";
     ctx.fillText(`자율배식(김치 등) — ${this.autonomous.occupants.length}/${this.autonomous.cap}`, autoX, autoY - 6);
     for (let i = 0; i < this.autonomous.cap; i++) {
